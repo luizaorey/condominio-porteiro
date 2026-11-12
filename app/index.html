@@ -1,31 +1,37 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Portaria</title><meta name="theme-color" content="#0f3d3e"><link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f6f6;--card:#fff;--ink:#14292a;--mut:#5d7172;--pri:#0f6e6f;--pri2:#0b5051;--ok:#1f8a4c;--bad:#c0392b;--warn:#b7791f;--line:#dbe3e3}
-@media(prefers-color-scheme:dark){:root{--bg:#0e1818;--card:#162626;--ink:#e6f0f0;--mut:#8fa6a6;--line:#264040;--pri:#27a3a4;--pri2:#1d8081}}
-*{box-sizing:border-box}body{margin:0;font:16px/1.4 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:env(safe-area-inset-bottom)}
-header{position:sticky;top:0;z-index:5;background:var(--pri2);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px}
-header b{font-size:17px}header small{display:block;opacity:.8;font-size:12px}header .sp{flex:1}
-button{font:inherit;border:0;border-radius:12px;padding:12px 16px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer}
-button.sec{background:transparent;color:var(--pri);border:1.5px solid var(--pri)}button.hd{background:rgba(255,255,255,.18);padding:8px 12px;font-size:14px}
-button.bad{background:var(--bad)}button:disabled{opacity:.5}
-main{max-width:720px;margin:0 auto;padding:12px 16px 90px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
-.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-.tabs button{flex:1;background:none;color:var(--mut);border-radius:0;padding:14px 4px;font-size:14px}.tabs button.on{color:var(--pri);box-shadow:inset 0 3px 0 var(--pri)}
-input,select{font:inherit;width:100%;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);margin:4px 0}
-label{font-size:13px;color:var(--mut);font-weight:600}
-.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row .fit{flex:none}
-.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--line);color:var(--ink)}
-.tag.bad{background:var(--bad);color:#fff}.tag.ok{background:var(--ok);color:#fff}.tag.warn{background:var(--warn);color:#fff}
-.big{font-size:22px;font-weight:800}.mut{color:var(--mut);font-size:14px}
-.pin{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:12px auto}.pin button{font-size:24px;padding:18px;background:var(--card);color:var(--ink);border:1px solid var(--line)}
-.dots{text-align:center;font-size:32px;letter-spacing:10px;min-height:44px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}.chips button{padding:8px 12px;font-size:14px;background:var(--card);color:var(--ink);border:1.5px solid var(--line)}.chips button.on{border-color:var(--pri);background:var(--pri);color:#fff}
-.alert{padding:12px;border-radius:12px;margin:10px 0;font-weight:600}.alert.bad{background:#fdecea;color:#8a1f14}.alert.ok{background:#e6f6ec;color:#14602f}.alert.warn{background:#fff4dc;color:#7a5410}
-video{width:100%;border-radius:12px;background:#000}.seg{display:flex;gap:6px}.seg button{flex:1;padding:10px 4px;font-size:14px;background:var(--card);color:var(--ink);border:1.5px solid var(--line)}.seg button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
-img.foto{width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:#000}
+:root{--bg:#eef3f3;--card:#fff;--ink:#0f2223;--mut:#6a7f80;--pri:#0f766e;--pri2:#115e59;--grad:linear-gradient(135deg,#0f766e,#134e4a);--ok:#15803d;--okbg:#dcfce7;--bad:#b91c1c;--badbg:#fee2e2;--warn:#b45309;--warnbg:#fef3c7;--line:#e2eaea;--sh:0 1px 2px rgba(15,50,50,.05),0 10px 28px rgba(15,50,50,.07)}
+@media(prefers-color-scheme:dark){:root{--bg:#0a1415;--card:#122122;--ink:#e8f2f2;--mut:#8da5a6;--line:#1f3637;--pri:#2dd4bf;--pri2:#0f766e;--okbg:#0f2e1d;--badbg:#3a1515;--warnbg:#3a2a0b;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;--sh:0 1px 2px rgba(0,0,0,.3)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;font:16px/1.45 Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;background:var(--grad);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;border-radius:0 0 22px 22px;box-shadow:0 8px 24px rgba(15,60,60,.25)}
+.av{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;font-weight:800;font-size:18px}
+header b{font-size:17px;font-weight:700}header small{display:block;opacity:.8;font-size:12px;font-weight:500}header .sp{flex:1}
+button{font:inherit;border:0;border-radius:14px;padding:13px 18px;background:var(--grad);color:#fff;font-weight:700;cursor:pointer;transition:transform .08s,opacity .2s}button:active{transform:scale(.97)}
+button.sec{background:transparent;color:var(--pri);border:1.5px solid var(--line);box-shadow:none}button.hd{white-space:nowrap;background:rgba(255,255,255,.18);padding:9px 14px;font-size:13px;border-radius:99px}
+button.bad{background:var(--bad)}button:disabled{opacity:.4}
+main{max-width:720px;margin:0 auto;padding:16px 16px 100px}
+.card{background:var(--card);border-radius:20px;padding:16px;margin:12px 0;box-shadow:var(--sh)}
+.tabs{position:fixed;bottom:10px;left:12px;right:12px;max-width:696px;margin:0 auto;display:flex;background:var(--card);border-radius:22px;padding:6px;box-shadow:0 10px 36px rgba(15,50,50,.22);margin-bottom:env(safe-area-inset-bottom)}
+.tabs button{flex:1;background:none;color:var(--mut);border-radius:16px;padding:9px 4px;font-size:12px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}.tabs button svg{width:24px;height:24px}.tabs button.on{background:var(--pri);color:#fff}
+@media(prefers-color-scheme:dark){.tabs button.on{color:#06201d}}
+input,select{font:inherit;width:100%;padding:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);margin:5px 0;outline:none}input:focus,select:focus{border-color:var(--pri)}
+label{font-size:12px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.row{display:flex;gap:10px;align-items:center}.row>*{flex:1}.row .fit{flex:none}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--bg);color:var(--ink)}
+.tag.bad{background:var(--badbg);color:var(--bad)}.tag.ok{background:var(--okbg);color:var(--ok)}.tag.warn{background:var(--warnbg);color:var(--warn)}
+.big{font-size:20px;font-weight:800;letter-spacing:-.01em}.mut{color:var(--mut);font-size:14px}
+.pk{display:flex;gap:14px;align-items:center}.badge{flex:none;width:64px;height:64px;border-radius:18px;background:var(--grad);color:#fff;display:grid;place-items:center;text-align:center;line-height:1.05}.badge small{display:block;font-size:10px;opacity:.8;font-weight:600}.badge b{font-size:22px;font-weight:800}
+.pin{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:310px;margin:14px auto}.pin button{font-size:26px;font-weight:600;padding:18px;background:var(--bg);color:var(--ink);border-radius:20px;box-shadow:none}
+.dots{text-align:center;font-size:30px;letter-spacing:12px;min-height:44px;color:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.chips button{padding:9px 14px;font-size:14px;font-weight:600;background:var(--bg);color:var(--ink);border:1.5px solid var(--line);border-radius:99px}.chips button.on{border-color:var(--pri);background:var(--pri);color:#fff}
+.alert{padding:13px 14px;border-radius:16px;margin:10px 0;font-weight:600;font-size:14px}.alert.bad{background:var(--badbg);color:var(--bad)}.alert.ok{background:var(--okbg);color:var(--ok)}.alert.warn{background:var(--warnbg);color:var(--warn)}
+video{width:100%;border-radius:18px;background:#000}.seg{display:flex;gap:4px;background:var(--card);padding:5px;border-radius:18px;box-shadow:var(--sh)}.seg button{flex:1;padding:11px 4px;font-size:13px;background:none;color:var(--mut);border-radius:14px}.seg button.on{background:var(--pri);color:#fff}
+@media(prefers-color-scheme:dark){.seg button.on{color:#06201d}}
+img.foto{width:100%;max-height:260px;object-fit:contain;border-radius:14px;background:#000;margin-top:8px}
+.empty{text-align:center;padding:36px 16px;color:var(--mut)}.empty b{display:block;font-size:40px}
 </style></head><body>
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -48,7 +54,7 @@ async function telaLogin(){
   if(!porteiros.length)porteiros=await rpc("porteiros_do_condominio",{p_condominio:CFG.cond});
   $("#app").innerHTML=`<header><div><b>Portaria</b><small>Quem está assumindo?</small></div></header><main>
   ${flash?`<div class="alert ${flash.k}">${esc(flash.t)}</div>`:""}
-  ${!escolhido?porteiros.map(p=>`<div class="card"><button style="width:100%;font-size:18px;padding:18px" onclick="pick('${p.id}')">${esc(p.nome)}</button></div>`).join(""):
+  ${!escolhido?porteiros.map(p=>`<div class="card" style="padding:12px"><button class="sec" style="width:100%;display:flex;align-items:center;gap:14px;font-size:18px;color:var(--ink);border:0;text-align:left" onclick="pick('${p.id}')"><span class="av" style="background:var(--grad);color:#fff;width:48px;height:48px">${esc(p.nome[0])}</span>${esc(p.nome)}</button></div>`).join(""):
   `<div class="card"><div class="big" style="text-align:center">${esc(escolhido.nome)}</div><div class="dots">${"●".repeat(pin.length)||"&nbsp;"}</div>
    <div class="pin">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="dig('${n}')">${n}</button>`).join("")}<button class="sec" onclick="escolhido=null;pin='';render()">‹</button><button onclick="dig('0')">0</button><button onclick="entrar()" ${pin.length<4?"disabled":""}>OK</button></div></div>`}</main>`;
 }
@@ -65,10 +71,11 @@ async function processar(){try{const r=await fn({acao:"processar"});await recarr
 // ---------- shell ----------
 function render(){
   if(!S.tok)return telaLogin();
-  const tabs=[["pend",`Pendentes (${S.pend.length})`],["nova","Nova encomenda"],["ret","Retirada"]];
-  $("#app").innerHTML=`<header><div><b>👤 ${esc(S.nome)}</b><small>${S.previsto?"no turno previsto":"cobrindo / fora da escala"}</small></div><span class="sp"></span><button class="hd" onclick="trocar()">Trocar porteiro</button></header>
+  const IC={pend:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg>',nova:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg>',ret:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 011-1h2M17 4h2a1 1 0 011 1v2M20 17v2a1 1 0 01-1 1h-2M7 20H5a1 1 0 01-1-1v-2M8 12h8"/></svg>'};
+  const tabs=[["pend",`Pendentes${S.pend.length?" · "+S.pend.length:""}`],["nova","Nova"],["ret","Retirada"]];
+  $("#app").innerHTML=`<header><div class="av">${esc(S.nome[0])}</div><div><b>${esc(S.nome)}</b><small>${S.previsto?"● no turno previsto":"● fora da escala"}</small></div><span class="sp"></span><button class="hd" onclick="trocar()">Trocar porteiro</button></header>
   <main>${flash?`<div class="alert ${flash.k}">${esc(flash.t)}</div>`:""}<div id="v"></div></main>
-  <nav class="tabs">${tabs.map(([k,l])=>`<button class="${S.tab===k?"on":""}" onclick="aba('${k}')">${l}</button>`).join("")}</nav>`;
+  <nav class="tabs">${tabs.map(([k,l])=>`<button class="${S.tab===k?"on":""}" onclick="aba('${k}')">${IC[k]}${l}</button>`).join("")}</nav>`;
   ({pend:vPend,nova:vNova,ret:vRet})[S.tab]();
 }
 window.aba=k=>{stopCam();S.tab=k;N=novo();R=nR();render();if(k==="pend")recarregar()};
@@ -79,9 +86,8 @@ function vPend(){
   $("#v").innerHTML=`<input id="bq" placeholder="Buscar por bloco, apto ou morador" value="${esc(S.busca)}" oninput="S.busca=this.value;vPendLista()"><div id="lista"></div>`;vPendLista();
 }
 window.vPendLista=()=>{const q=norm(S.busca);const l=S.pend.filter(p=>!q||norm(`${p.bloco} ${p.apto} ${p.morador}`).includes(q));
-  $("#lista").innerHTML=l.length?l.map(p=>`<div class="card"><div class="row"><div><div class="big">Bl ${esc(p.bloco)} · Apto ${esc(p.apto)}</div><div>${esc(p.morador||"—")}</div></div><div class="fit" style="text-align:right"><span class="tag">📍 ${esc(p.local)}</span><div class="mut">${hora(p.recebida_em)}</div></div></div>
-   ${p.aviso==="falhou"||!p.aviso?`<div class="alert bad" style="margin-top:8px">Aviso por WhatsApp não enviado <button class="hd" style="background:var(--bad);margin-left:8px" onclick="reenviar('${p.id}')">Reenviar</button></div>`:p.aviso==="pendente"?`<span class="tag warn">enviando aviso…</span>`:`<span class="tag ok">aviso enviado</span>`}
-   <div style="margin-top:8px"><button class="sec" onclick="darBaixa('${p.id}')">Entregar</button></div></div>`).join(""):`<div class="card mut">Nenhuma encomenda pendente.</div>`};
+  $("#lista").innerHTML=l.length?l.map(p=>`<div class="card"><div class="pk"><div class="badge"><div><small>BL ${esc(p.bloco)}</small><b>${esc(p.apto)}</b></div></div><div style="flex:1;min-width:0"><div class="big" style="font-size:17px">${esc(p.morador||"—")}</div><div class="mut">📍 ${esc(p.local)} · ${hora(p.recebida_em)}</div><div style="margin-top:6px">${p.aviso==="falhou"||!p.aviso?'<span class="tag bad">aviso não enviado</span>':p.aviso==="pendente"?'<span class="tag warn">enviando aviso…</span>':'<span class="tag ok">✓ morador avisado</span>'}</div></div></div>
+   ${p.aviso==="falhou"||!p.aviso?`<div class="row" style="margin-top:12px"><button class="bad" onclick="reenviar('${p.id}')">Reenviar aviso</button><button class="sec" onclick="darBaixa('${p.id}')">Entregar</button></div>`:`<div style="margin-top:12px"><button class="sec" style="width:100%" onclick="darBaixa('${p.id}')">Entregar</button></div>`}</div>`).join(""):`<div class="empty"><b>📦</b>Nenhuma encomenda pendente</div>`};
 window.reenviar=async id=>{try{await rpc("reenviar_aviso",{p_token:S.tok,p_encomenda:id});const r=await processar();msg(r&&r.falhas?"Ainda não foi possível enviar. A encomenda continua pendente.":"Aviso reenviado com o mesmo código.",r&&r.falhas?"bad":"ok")}catch(e){msg(e.message,"bad")}};
 window.darBaixa=id=>{R=nR();R.modo="manual";R.enc=S.pend.find(p=>p.id===id);S.tab="ret";render()};
 
