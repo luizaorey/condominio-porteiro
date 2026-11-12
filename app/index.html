@@ -92,15 +92,18 @@ window.reenviar=async id=>{try{await rpc("reenviar_aviso",{p_token:S.tok,p_encom
 window.darBaixa=id=>{R=nR();R.modo="manual";R.enc=S.pend.find(p=>p.id===id);S.tab="ret";render()};
 
 // ---------- nova encomenda ----------
-const novo=()=>({foto:null,fotoPath:null,ocr:null,uni:null,mor:null,local:"",busca:"",lendo:false,aprox:false,pront:null});let N=novo();
+const ultLocal=()=>{try{return localStorage.getItem("loc")||""}catch(e){return ""}};
+const novo=()=>({lido:null,conf:null,foto:null,fotoPath:null,ocr:null,uni:null,mor:null,local:ultLocal(),busca:"",lendo:false,aprox:false,pront:null});let N=novo();
 const LOCAIS=["Prateleira 1","Prateleira 2","Prateleira 3","Armário","Sala de encomendas"];
 function vNova(){
   const n=N;const sel=n.uni?S.unis.find(u=>u.unidade_id===n.uni):null;
   $("#v").innerHTML=n.pront?`<div class="card"><div class="big">✅ Entrada registrada</div><p>Bl ${esc(n.pront.bloco)} · Apto ${esc(n.pront.apto)} — ${esc(n.pront.morador||"")}<br>📍 ${esc(n.pront.local)}</p><div class="alert ${n.pront.aviso==="enviado"?"ok":"bad"}">${n.pront.aviso==="enviado"?"Morador avisado pelo WhatsApp.":"Aviso não enviado. A encomenda ficou em Pendentes e pode ser reenviada."}</div><button onclick="N=novo();render()">Nova encomenda</button></div>`:`
   <div class="card"><label>1. Foto da etiqueta</label>
-  <input type="file" accept="image/*" capture="environment" id="ft" onchange="foto(this)">
+  <input type="file" accept="image/*" capture="environment" id="ft" onchange="foto(this)" hidden>
+  <button style="width:100%;padding:18px;margin-top:6px" onclick="document.getElementById('ft').click()">📷 ${n.foto?"Fotografar de novo":"Fotografar etiqueta"}</button>
   ${n.foto?`<img class="foto" src="${n.foto}">`:""}${n.lendo?`<div class="mut">Lendo etiqueta…</div>`:""}
-  ${n.ocr&&n.ocr.erro?`<div class="alert warn">Não consegui ler a etiqueta. Escolha a unidade abaixo.</div>`:""}</div>
+  ${n.ocr&&n.ocr.erro?`<div class="alert warn">Não consegui ler a etiqueta. Escolha a unidade abaixo.</div>`:""}
+  ${n.lido?`<div class="alert ${n.conf==="alta"?"ok":"warn"}" style="font-weight:500">Lido na etiqueta: <b>${esc(n.lido.destinatario||"—")}</b>${n.lido.bloco?` · Bl ${esc(n.lido.bloco)}`:""}${n.lido.apto?` · Apto ${esc(n.lido.apto)}`:""}${n.lido.transportadora?` · ${esc(n.lido.transportadora)}`:""}<br>${n.conf==="alta"?"✓ Morador identificado. Confira e escolha onde guardou.":n.conf==="media"?"Só parte dos dados bateu com o cadastro. Confira abaixo.":"Não encontrei no cadastro. Escolha a unidade abaixo."}</div>`:""}</div>
   <div class="card"><label>2. Unidade</label><input placeholder="Digite bloco/apto/nome (ex.: A 101)" value="${esc(n.busca)}" oninput="N.busca=this.value;vSug()"><div id="sug"></div>
   ${sel?`<div class="alert ok" style="margin-top:8px">Bl ${esc(sel.bloco)} · Apto ${esc(sel.numero)}</div><label>Morador / destinatário</label>
   <select onchange="N.mor=this.value||null;N.aprox=false">${sel.moradores.map(m=>`<option value="${m.id}" ${m.id===n.mor?"selected":""}>${esc(m.nome)}${m.principal?" (contato principal)":""}</option>`).join("")}</select>
@@ -117,15 +120,23 @@ window.escolheUni=(id,mor)=>{N.uni=id;const u=S.unis.find(x=>x.unidade_id===id);
 async function reduz(file){return new Promise(res=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1400/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=img.width*k;c.height=img.height*k;c.getContext("2d").drawImage(img,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.82))};img.src=URL.createObjectURL(file)})}
 window.foto=async inp=>{const f=inp.files[0];if(!f)return;N.lendo=true;N.foto=await reduz(f);render();
   const r=await fn({acao:"foto",imagem:N.foto.split(",")[1]});N.lendo=false;N.fotoPath=r.foto_path||null;N.ocr=r.ocr||{erro:r.erro||"ocr_falhou"};
-  if(N.ocr&&!N.ocr.erro){const bl=norm(N.ocr.bloco),ap=norm(N.ocr.apartamento),nm=norm(N.ocr.destinatario);
-    const porNome=nm?S.unis.flatMap(u=>u.moradores.map(m=>({u,m}))).filter(x=>norm(x.m.nome)===nm||nm&&norm(x.m.nome).includes(nm)||nm&&nm.includes(norm(x.m.nome))):[];
-    const porApto=ap?S.unis.filter(u=>norm(u.numero)===ap&&(!bl||norm(u.bloco)===bl)):[];
-    const hit=porNome.find(x=>porApto.some(u=>u.unidade_id===x.u.unidade_id))||(porNome.length===1&&porNome[0]);
-    if(hit)escolheUni(hit.u.unidade_id,hit.m.id);
-    else if(porApto.length===1){escolheUni(porApto[0].unidade_id);N.aprox=true}
-    else{N.busca=[N.ocr.bloco,N.ocr.apartamento,N.ocr.destinatario].filter(Boolean).join(" ")}}
+  if(N.ocr&&!N.ocr.erro)casar(N.ocr);
   render()};
-window.confirmar=async()=>{try{const e=await rpc("registrar_entrada",{p_token:S.tok,p_unidade:N.uni,p_morador:N.mor,p_local:N.local,p_foto:N.fotoPath,p_ocr:N.ocr&&!N.ocr.erro?N.ocr:null,p_destinatario_texto:N.ocr&&N.ocr.destinatario||null});
+// casa o que foi lido na etiqueta com o cadastro (nome + apto + bloco, com pontuação)
+const toks=s=>norm(s).replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(t=>t.length>1&&!["de","da","do","dos","das"].includes(t));
+const apNum=s=>norm(s).replace(/[^a-z0-9]/g,"").replace(/^(apto|apt|ap|apartamento|casa|unidade)/,"");
+function casar(o){const nt=toks(o.destinatario),ap=apNum(o.apartamento),bl=norm(o.bloco).replace(/^(bloco|bl|torre)\s*/,"");
+  let melhor=null;
+  for(const u of S.unis){const ub=norm(u.bloco).replace(/^(bloco|bl|torre)\s*/,""),uAp=apNum(u.numero);
+    const apOk=ap&&uAp===ap,blOk=bl&&ub===bl;
+    for(const m of (u.moradores.length?u.moradores:[{id:null,nome:""}])){
+      const mt=toks(m.nome),comuns=nt.filter(t=>mt.includes(t)).length,nomeSc=nt.length&&mt.length?comuns/Math.max(1,Math.min(nt.length,mt.length)):0;
+      const sc=nomeSc*3+(apOk?2:0)+(blOk?1:0)-(ap&&!apOk&&nomeSc<1?0.5:0);
+      if(!melhor||sc>melhor.sc)melhor={sc,u,m,nomeSc,apOk,blOk}}}
+  N.lido={destinatario:o.destinatario,bloco:o.bloco,apto:o.apartamento,transportadora:o.transportadora};
+  if(melhor&&(melhor.nomeSc>=0.5||melhor.apOk)){escolheUni(melhor.u.unidade_id,melhor.nomeSc>=0.5?melhor.m.id:undefined);N.aprox=!(melhor.nomeSc>=0.5);N.conf=melhor.nomeSc>=0.5&&(melhor.apOk||melhor.blOk)?"alta":"media"}
+  else{N.busca=[o.bloco,o.apartamento,o.destinatario].filter(Boolean).join(" ");N.conf="baixa"}}
+window.confirmar=async()=>{try{try{localStorage.setItem("loc",N.local)}catch(_){}const e=await rpc("registrar_entrada",{p_token:S.tok,p_unidade:N.uni,p_morador:N.mor,p_local:N.local,p_foto:N.fotoPath,p_ocr:N.ocr&&!N.ocr.erro?N.ocr:null,p_destinatario_texto:N.ocr&&N.ocr.destinatario||null});
   const pr={bloco:e.bloco,apto:e.apto,morador:e.morador,local:e.local,aviso:"pendente"};N.pront=pr;render();
   await processar();const p=S.pend.find(x=>x.id===e.id);pr.aviso=p?p.aviso:"enviado";render()}catch(e){msg(e.message,"bad")}};
 

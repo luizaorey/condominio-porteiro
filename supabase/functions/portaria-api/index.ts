@@ -21,7 +21,7 @@ async function ocr(b64: string, mime: string) {
   if (!OPENAI) return { erro: "ocr_indisponivel" };
   const r = await fetch("https://api.openai.com/v1/chat/completions", { method: "POST", headers: { Authorization: `Bearer ${OPENAI}`, "Content-Type": "application/json" },
     body: JSON.stringify({ model: "gpt-4.1-mini", response_format: { type: "json_object" }, messages: [
-      { role: "system", content: "Você lê etiquetas de encomendas entregues em condomínios brasileiros. Responda JSON: {\"destinatario\":string|null,\"bloco\":string|null,\"apartamento\":string|null,\"transportadora\":string|null,\"legivel\":boolean}. Só preencha o que estiver realmente visível; não invente." },
+      { role: "system", content: "Você lê etiquetas de encomendas entregues em condomínios brasileiros. Responda JSON: {\"destinatario\":string|null,\"bloco\":string|null,\"apartamento\":string|null,\"transportadora\":string|null,\"legivel\":boolean}. O apartamento pode vir como Apto, Ap, Apt, Unidade, Casa ou só um número após o bloco (ex.: '101 A', 'Bl B Ap 22'); devolva só o número/identificador da unidade em apartamento e a letra/número do bloco em bloco (sem a palavra Bloco/Torre). Ignore remetente, CEP, rastreio e endereço da loja de origem. Só preencha o que estiver realmente visível; não invente." },
       { role: "user", content: [{ type: "text", text: "Leia a etiqueta." }, { type: "image_url", image_url: { url: `data:${mime};base64,${b64}` } }] }] }) });
   if (!r.ok) return { erro: "ocr_falhou" };
   try { return JSON.parse((await r.json()).choices[0].message.content); } catch { return { erro: "ocr_falhou" }; }
