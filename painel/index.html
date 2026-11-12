@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Painel do Síndico</title>
+<style>
+:root{--bg:#f4f6f6;--card:#fff;--ink:#14292a;--mut:#5d7172;--pri:#0f6e6f;--line:#dbe3e3;--ok:#1f8a4c;--bad:#c0392b;--warn:#b7791f}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1818;--card:#162626;--ink:#e6f0f0;--mut:#8fa6a6;--line:#264040;--pri:#27a3a4}}
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--pri);color:#fff;padding:12px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}header b{font-size:18px}header nav{display:flex;gap:4px;flex:1}
+header button{background:rgba(255,255,255,.15);color:#fff;border:0;padding:8px 14px;border-radius:8px;font:inherit;cursor:pointer}header button.on{background:#fff;color:var(--pri);font-weight:700}
+main{max-width:1000px;margin:0 auto;padding:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:10px 0}
+button.b{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer}button.s{background:none;color:var(--pri);border:1.5px solid var(--pri);border-radius:8px;padding:6px 10px;font:inherit;cursor:pointer}
+input,select{font:inherit;padding:9px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{font-size:12px;color:var(--mut);text-transform:uppercase}
+.tag{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--line)}.tag.ok{background:var(--ok);color:#fff}.tag.bad{background:var(--bad);color:#fff}.tag.warn{background:var(--warn);color:#fff}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mut{color:var(--mut)}.bar>input{flex:1;min-width:180px}
+tr.cl{cursor:pointer}tr.cl:hover{background:var(--bg)}ul.h{list-style:none;padding:0;margin:8px 0}ul.h li{padding:6px 0 6px 14px;border-left:3px solid var(--pri);margin-left:6px}
+img.f{max-width:100%;max-height:320px;border-radius:8px}
+</style></head><body><div id="app"></div>
+<script>
+const CFG={url:"https://badhkhukxidtemzlgnlc.supabase.co",key:"sb_publishable_31i9ZLUyjZ-SswxSSwV1vw_PYdcJxWe"};
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let T=sessionStorage.getItem("t"),nome=sessionStorage.getItem("n"),aba="enc",D={enc:[],cad:null,sel:null,hist:null,foto:null},F={st:"",q:""},err="";
+const MSG={credenciais_invalidas:"E-mail ou senha incorretos.",pin_invalido:"O PIN deve ter de 4 a 6 números."};
+async function rpc(f,a={}){const r=await fetch(`${CFG.url}/rest/v1/rpc/${f}`,{method:"POST",headers:{apikey:CFG.key,"Content-Type":"application/json","Content-Profile":"portaria"},body:JSON.stringify(a)});const j=await r.json().catch(()=>({}));if(!r.ok){if(j.message==="sessao_invalida"){sair();}throw new Error(MSG[j.message]||j.message||"erro")}return j}
+const hora=d=>d?new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"—";
+const DIAS=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+function sair(){T=null;sessionStorage.clear();render()}
+async function login(e){e.preventDefault();try{const r=await rpc("login_sindico",{p_email:$("#em").value,p_senha:$("#se").value});T=r.token;nome=r.nome;sessionStorage.setItem("t",T);sessionStorage.setItem("n",nome);err="";await carregar()}catch(x){err=x.message;render()}}
+async function carregar(){try{D.enc=await rpc("painel_encomendas",{p_token:T,p_status:F.st||null,p_busca:F.q||null});if(aba!=="enc"||!D.cad)D.cad=await rpc("painel_cadastros",{p_token:T})}catch(x){err=x.message}render()}
+function render(){
+  if(!T)return $("#app").innerHTML=`<main style="max-width:380px;margin-top:10vh"><div class="card"><h2>Painel do Síndico</h2>${err?`<div class="tag bad">${esc(err)}</div>`:""}<form onsubmit="login(event)"><p><input id="em" type="email" placeholder="E-mail" style="width:100%"></p><p><input id="se" type="password" placeholder="Senha" style="width:100%"></p><button class="b" style="width:100%">Entrar</button></form></div></main>`;
+  $("#app").innerHTML=`<header><b>Condomínio · Porteiro</b><nav>${[["enc","Encomendas"],["cad","Moradores"],["por","Porteiros e turnos"]].map(([k,l])=>`<button class="${aba===k?"on":""}" onclick="aba='${k}';D.sel=null;carregar()">${l}</button>`).join("")}</nav><span>${esc(nome)}</span><button onclick="sair()">Sair</button></header><main>${err?`<div class="card"><span class="tag bad">${esc(err)}</span></div>`:""}<div id="v"></div></main>`;
+  ({enc:vEnc,cad:vCad,por:vPor})[aba]();
+}
+const avTag=e=>e.aviso==="enviado"?`<span class="tag ok">aviso enviado</span>`:e.aviso==="falhou"?`<span class="tag bad">aviso falhou</span>`:e.aviso?`<span class="tag warn">enviando</span>`:`<span class="tag bad">sem aviso</span>`;
+function vEnc(){
+  if(D.sel)return vDet();
+  $("#v").innerHTML=`<div class="bar"><select onchange="F.st=this.value;carregar()"><option value="">Todas</option><option value="aguardando" ${F.st==="aguardando"?"selected":""}>Pendentes</option><option value="retirada" ${F.st==="retirada"?"selected":""}>Retiradas</option></select><input id="bq" placeholder="Buscar por bloco, apartamento ou morador" value="${esc(F.q)}" onkeydown="if(event.key==='Enter'){F.q=this.value;carregar()}"><button class="b" onclick="F.q=$('#bq').value;carregar()">Buscar</button></div>
+  <div class="card"><table><tr><th>Unidade</th><th>Destinatário</th><th>Recebida</th><th>Local</th><th>Situação</th></tr>${D.enc.map(e=>`<tr class="cl" onclick="abrir('${e.id}')"><td><b>Bl ${esc(e.bloco)} · ${esc(e.apto)}</b></td><td>${esc(e.morador||"—")}</td><td>${hora(e.recebida_em)}<div class="mut">${esc(e.recebida_por)}</div></td><td>${esc(e.local)}</td><td>${e.status==="retirada"?`<span class="tag ok">retirada</span> ${hora(e.retirada_em)}<div class="mut">por ${esc(e.retirada_por)}${e.terceiro?" (terceiro)":""}</div>`:`<span class="tag warn">aguardando</span> ${avTag(e)}`}</td></tr>`).join("")||`<tr><td colspan=5 class="mut">Nada encontrado.</td></tr>`}</table></div>`;
+}
+window.abrir=async id=>{D.sel=D.enc.find(e=>e.id===id);D.hist=null;D.foto=null;render();D.hist=await rpc("painel_historico",{p_token:T,p_encomenda:id});if(D.sel.foto){try{const r=await fetch(`${CFG.url}/functions/v1/portaria-api`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:T,acao:"foto_url",path:D.sel.foto})});D.foto=(await r.json()).url}catch(e){}}render()};
+const NOMES={entrada:"Recebida na portaria",aviso_falhou:"Falha no aviso por WhatsApp",aviso_reenviado:"Aviso reenviado",retirada:"Retirada",aviso_retirada_falhou:"Falha na confirmação de retirada"};
+function vDet(){const e=D.sel,h=D.hist;
+  $("#v").innerHTML=`<button class="s" onclick="D.sel=null;render()">← Voltar</button><div class="card"><h2>Bl ${esc(e.bloco)} · Apto ${esc(e.apto)} — ${esc(e.morador||"—")}</h2>
+  <p>📍 ${esc(e.local)} · ${e.status==="retirada"?`<span class="tag ok">retirada</span>`:`<span class="tag warn">aguardando retirada</span>`}</p>
+  <table><tr><th>Recebida por</th><td>${esc(e.recebida_por)} em ${hora(e.recebida_em)}</td></tr><tr><th>Destinatário</th><td>${esc(e.morador||"—")}</td></tr>
+  ${e.status==="retirada"?`<tr><th>Retirada por</th><td>${esc(e.retirada_por)}${e.terceiro?" (terceiro)":""} em ${hora(e.retirada_em)}</td></tr><tr><th>Entregue pelo porteiro</th><td>${esc(e.entregue_por)}</td></tr>`:""}</table>
+  ${D.foto?`<p><img class="f" src="${D.foto}"></p>`:""}<h3>Histórico</h3>${h?`<ul class="h">${h.eventos.map(v=>`<li><b>${NOMES[v.tipo]||esc(v.tipo)}</b> — ${hora(v.em)}${v.por?` · ${esc(v.por)}`:""}${v.dados&&v.dados.local?` · ${esc(v.dados.local)}`:""}${v.dados&&v.dados.retirante?` · quem retirou: ${esc(v.dados.retirante)}`:""}${v.dados&&v.dados.motivo?` · motivo: ${esc(v.dados.motivo)}`:""}${v.dados&&v.dados.erro?` <span class="mut">(${esc(v.dados.erro).slice(0,80)})</span>`:""}</li>`).join("")}</ul><h3>Avisos WhatsApp</h3><ul class="h">${h.avisos.map(a=>`<li>${a.tipo==="aviso"?"Aviso de chegada":"Confirmação de retirada"} — ${a.status==="enviado"?'<span class="tag ok">enviado</span>':a.status==="falhou"?'<span class="tag bad">falhou</span>':'<span class="tag warn">pendente</span>'} · ${hora(a.em)}</li>`).join("")}</ul>`:"Carregando…"}</div>`}
+let UF={un:null,id:null};
+function vCad(){const c=D.cad;if(!c)return;
+  $("#v").innerHTML=`<div class="card"><b>Novo morador / unidade</b><div class="bar" style="margin-top:8px"><input id="mb" placeholder="Bloco" style="max-width:90px"><input id="ma" placeholder="Apto" style="max-width:90px"><input id="mn" placeholder="Nome"><input id="mw" placeholder="WhatsApp com DDD"><label><input type="checkbox" id="mp"> contato principal</label><button class="b" onclick="addMor()">Salvar</button></div></div>
+  ${c.unidades.map(u=>`<div class="card"><b>Bloco ${esc(u.bloco)} · Apto ${esc(u.numero)}</b><table>${c.moradores.filter(m=>m.unidade_id===u.unidade_id).map(m=>`<tr><td>${esc(m.nome)} ${m.principal?'<span class="tag ok">principal</span>':""} ${m.ativo?"":'<span class="tag">inativo</span>'}</td><td>${esc(m.whatsapp)}</td><td style="text-align:right">${m.principal?"":`<button class="s" onclick="tornaPrincipal('${m.id}')">tornar principal</button> `}<button class="s" onclick="ativa('${m.id}',${!m.ativo})">${m.ativo?"desativar":"reativar"}</button></td></tr>`).join("")}</table></div>`).join("")}`}
+const mor=id=>D.cad.moradores.find(m=>m.id===id);
+window.addMor=async()=>{try{const un=await rpc("painel_salvar_unidade",{p_token:T,p_bloco:$("#mb").value,p_numero:$("#ma").value});await rpc("painel_salvar_morador",{p_token:T,p_id:null,p_unidade:un,p_nome:$("#mn").value,p_whatsapp:$("#mw").value,p_principal:$("#mp").checked});err="";D.cad=null;carregar()}catch(e){err=e.message;render()}};
+window.tornaPrincipal=async id=>{const m=mor(id);await rpc("painel_salvar_morador",{p_token:T,p_id:id,p_unidade:m.unidade_id,p_nome:m.nome,p_whatsapp:m.whatsapp,p_principal:true,p_ativo:m.ativo});D.cad=null;carregar()};
+window.ativa=async(id,a)=>{const m=mor(id);await rpc("painel_salvar_morador",{p_token:T,p_id:id,p_unidade:m.unidade_id,p_nome:m.nome,p_whatsapp:m.whatsapp,p_principal:m.principal&&a,p_ativo:a});D.cad=null;carregar()};
+function vPor(){const c=D.cad;if(!c)return;
+  $("#v").innerHTML=`<div class="card"><b>Novo porteiro</b><div class="bar" style="margin-top:8px"><input id="pn" placeholder="Nome"><input id="pp" placeholder="PIN (4 a 6 números)" inputmode="numeric" style="max-width:200px"><button class="b" onclick="addPor()">Cadastrar</button></div></div>
+  ${c.porteiros.map(p=>`<div class="card"><div class="bar"><b>${esc(p.nome)}</b> ${p.ativo?"":'<span class="tag">inativo</span>'} ${p.tem_pin?"":'<span class="tag bad">sem PIN</span>'}<span style="flex:1"></span><input id="pin${p.id}" placeholder="novo PIN" inputmode="numeric" style="max-width:110px"><button class="s" onclick="setPin('${p.id}')">Trocar PIN</button><button class="s" onclick="togPor('${p.id}',${!p.ativo})">${p.ativo?"Desativar":"Reativar"}</button></div>
+   <div class="mut" style="margin:8px 0 4px">Turnos previstos</div>${p.escala.map(e=>`<div>${e.dias.sort().map(d=>DIAS[d]).join(", ")} · ${String(e.inicio).slice(0,5)} – ${String(e.fim).slice(0,5)} <button class="s" onclick="rmEsc('${e.id}')">remover</button></div>`).join("")||'<div class="mut">Nenhum turno definido.</div>'}
+   <div class="bar" style="margin-top:8px"><input id="i${p.id}" type="time" value="07:00" style="max-width:110px"><input id="f${p.id}" type="time" value="19:00" style="max-width:110px"><input id="d${p.id}" placeholder="dias (0=Dom … 6=Sáb)" value="1,2,3,4,5,6,0"><button class="b" onclick="addEsc('${p.id}')">Adicionar turno</button></div></div>`).join("")}
+  <div class="card"><b>Quem realmente assumiu (últimos turnos)</b><table><tr><th>Porteiro</th><th>Assumiu</th><th>Saiu</th><th></th></tr>${c.turnos.map(t=>`<tr><td>${esc(t.porteiro)}</td><td>${hora(t.inicio)}</td><td>${hora(t.fim)}</td><td>${t.previsto?"":'<span class="tag warn">fora da escala / cobrindo</span>'}</td></tr>`).join("")}</table></div>`}
+const rec=async f=>{try{await f();err="";D.cad=null;carregar()}catch(e){err=e.message;render()}};
+window.addPor=()=>rec(()=>rpc("painel_salvar_porteiro",{p_token:T,p_id:null,p_nome:$("#pn").value,p_pin:$("#pp").value||null}));
+window.setPin=id=>rec(()=>{const p=D.cad.porteiros.find(x=>x.id===id);return rpc("painel_salvar_porteiro",{p_token:T,p_id:id,p_nome:p.nome,p_pin:$("#pin"+id).value||null,p_ativo:p.ativo})});
+window.togPor=(id,a)=>rec(()=>{const p=D.cad.porteiros.find(x=>x.id===id);return rpc("painel_salvar_porteiro",{p_token:T,p_id:id,p_nome:p.nome,p_pin:null,p_ativo:a})});
+window.addEsc=id=>rec(()=>rpc("painel_salvar_escala",{p_token:T,p_porteiro:id,p_dias:$("#d"+id).value.split(",").map(x=>+x.trim()).filter(x=>x>=0&&x<=6),p_inicio:$("#i"+id).value,p_fim:$("#f"+id).value}));
+window.rmEsc=id=>rec(()=>rpc("painel_remover_escala",{p_token:T,p_id:id}));
+T?carregar():render();
+</script></body></html>

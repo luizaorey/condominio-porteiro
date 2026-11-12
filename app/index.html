@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Portaria</title><meta name="theme-color" content="#0f3d3e"><link rel="manifest" href="manifest.json">
+<style>
+:root{--bg:#f4f6f6;--card:#fff;--ink:#14292a;--mut:#5d7172;--pri:#0f6e6f;--pri2:#0b5051;--ok:#1f8a4c;--bad:#c0392b;--warn:#b7791f;--line:#dbe3e3}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1818;--card:#162626;--ink:#e6f0f0;--mut:#8fa6a6;--line:#264040;--pri:#27a3a4;--pri2:#1d8081}}
+*{box-sizing:border-box}body{margin:0;font:16px/1.4 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;background:var(--pri2);color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px}
+header b{font-size:17px}header small{display:block;opacity:.8;font-size:12px}header .sp{flex:1}
+button{font:inherit;border:0;border-radius:12px;padding:12px 16px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer}
+button.sec{background:transparent;color:var(--pri);border:1.5px solid var(--pri)}button.hd{background:rgba(255,255,255,.18);padding:8px 12px;font-size:14px}
+button.bad{background:var(--bad)}button:disabled{opacity:.5}
+main{max-width:720px;margin:0 auto;padding:12px 16px 90px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs button{flex:1;background:none;color:var(--mut);border-radius:0;padding:14px 4px;font-size:14px}.tabs button.on{color:var(--pri);box-shadow:inset 0 3px 0 var(--pri)}
+input,select{font:inherit;width:100%;padding:12px;border:1.5px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);margin:4px 0}
+label{font-size:13px;color:var(--mut);font-weight:600}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row .fit{flex:none}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--line);color:var(--ink)}
+.tag.bad{background:var(--bad);color:#fff}.tag.ok{background:var(--ok);color:#fff}.tag.warn{background:var(--warn);color:#fff}
+.big{font-size:22px;font-weight:800}.mut{color:var(--mut);font-size:14px}
+.pin{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:12px auto}.pin button{font-size:24px;padding:18px;background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.dots{text-align:center;font-size:32px;letter-spacing:10px;min-height:44px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}.chips button{padding:8px 12px;font-size:14px;background:var(--card);color:var(--ink);border:1.5px solid var(--line)}.chips button.on{border-color:var(--pri);background:var(--pri);color:#fff}
+.alert{padding:12px;border-radius:12px;margin:10px 0;font-weight:600}.alert.bad{background:#fdecea;color:#8a1f14}.alert.ok{background:#e6f6ec;color:#14602f}.alert.warn{background:#fff4dc;color:#7a5410}
+video{width:100%;border-radius:12px;background:#000}.seg{display:flex;gap:6px}.seg button{flex:1;padding:10px 4px;font-size:14px;background:var(--card);color:var(--ink);border:1.5px solid var(--line)}.seg button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+img.foto{width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:#000}
+</style></head><body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+const CFG={url:"https://badhkhukxidtemzlgnlc.supabase.co",key:"sb_publishable_31i9ZLUyjZ-SswxSSwV1vw_PYdcJxWe",cond:"00000000-0000-0000-0000-000000000001"};
+const $=s=>document.querySelector(s), esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const S={tok:null,nome:null,previsto:true,tab:"pend",pend:[],unis:[],busca:"",aparelho:null};
+try{S.aparelho=localStorage.getItem("ap")||(localStorage.setItem("ap",crypto.randomUUID()),localStorage.getItem("ap"));const t=sessionStorage.getItem("s");if(t){Object.assign(S,JSON.parse(t))}}catch(e){S.aparelho=S.aparelho||"ap-"+Math.random()}
+const save=()=>{try{sessionStorage.setItem("s",JSON.stringify({tok:S.tok,nome:S.nome,previsto:S.previsto}))}catch(e){}};
+const MSG={credenciais_invalidas:"PIN incorreto.",pin_bloqueado:"Muitas tentativas. Espere 5 minutos.",local_obrigatorio:"Informe onde guardou o pacote.",nome_obrigatorio:"Informe o nome de quem retirou.",nome_e_motivo_obrigatorios:"Informe quem retirou e o motivo da baixa manual.",codigo_desconhecido:"QR Code não encontrado neste condomínio.",codigo_nao_confere:"O QR Code não pertence a esta encomenda.",codigo_ja_utilizado:"Esse código já foi utilizado.",sessao_invalida:"Sessão encerrada. Identifique-se novamente."};
+async function rpc(fn,a={}){const r=await fetch(`${CFG.url}/rest/v1/rpc/${fn}`,{method:"POST",headers:{apikey:CFG.key,"Content-Type":"application/json","Content-Profile":"portaria"},body:JSON.stringify(a)});const j=await r.json().catch(()=>({}));if(!r.ok){const m=j.message||"erro";if(m==="sessao_invalida"){S.tok=null;save();render()}throw new Error(MSG[m]||m)}return j}
+async function fn(b){const r=await fetch(`${CFG.url}/functions/v1/portaria-api`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:S.tok,...b})});return r.json()}
+const hora=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
+let flash=null;const msg=(t,k="ok")=>{flash={t,k};render();setTimeout(()=>{if(flash&&flash.t===t){flash=null;render()}},6000)};
+
+// ---------- login ----------
+let porteiros=[],escolhido=null,pin="";
+async function telaLogin(){
+  if(!porteiros.length)porteiros=await rpc("porteiros_do_condominio",{p_condominio:CFG.cond});
+  $("#app").innerHTML=`<header><div><b>Portaria</b><small>Quem está assumindo?</small></div></header><main>
+  ${flash?`<div class="alert ${flash.k}">${esc(flash.t)}</div>`:""}
+  ${!escolhido?porteiros.map(p=>`<div class="card"><button style="width:100%;font-size:18px;padding:18px" onclick="pick('${p.id}')">${esc(p.nome)}</button></div>`).join(""):
+  `<div class="card"><div class="big" style="text-align:center">${esc(escolhido.nome)}</div><div class="dots">${"●".repeat(pin.length)||"&nbsp;"}</div>
+   <div class="pin">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="dig('${n}')">${n}</button>`).join("")}<button class="sec" onclick="escolhido=null;pin='';render()">‹</button><button onclick="dig('0')">0</button><button onclick="entrar()" ${pin.length<4?"disabled":""}>OK</button></div></div>`}</main>`;
+}
+window.pick=id=>{escolhido=porteiros.find(p=>p.id===id);pin="";render()};
+window.dig=d=>{if(pin.length<6){pin+=d;render()}};
+window.entrar=async()=>{try{const r=await rpc("login_pin",{p_porteiro:escolhido.id,p_pin:pin,p_aparelho:S.aparelho});Object.assign(S,{tok:r.token,nome:r.nome,previsto:r.previsto,tab:"pend"});save();escolhido=null;pin="";flash=null;await recarregar();if(!r.previsto)msg("Você não está na escala neste horário — o turno fica registrado como cobertura.","warn");else render()}catch(e){pin="";msg(e.message,"bad")}};
+window.trocar=async()=>{try{await rpc("logout",{p_token:S.tok})}catch(e){}S.tok=null;save();stopCam();porteiros=[];render()};
+
+// ---------- dados ----------
+async function recarregar(){try{[S.pend,S.unis]=await Promise.all([rpc("pendentes",{p_token:S.tok}),rpc("unidades_busca",{p_token:S.tok})]);render()}catch(e){}}
+setInterval(()=>{if(S.tok&&(S.tab==="pend"))recarregar()},20000);
+async function processar(){try{const r=await fn({acao:"processar"});await recarregar();return r}catch(e){await recarregar()}}
+
+// ---------- shell ----------
+function render(){
+  if(!S.tok)return telaLogin();
+  const tabs=[["pend",`Pendentes (${S.pend.length})`],["nova","Nova encomenda"],["ret","Retirada"]];
+  $("#app").innerHTML=`<header><div><b>👤 ${esc(S.nome)}</b><small>${S.previsto?"no turno previsto":"cobrindo / fora da escala"}</small></div><span class="sp"></span><button class="hd" onclick="trocar()">Trocar porteiro</button></header>
+  <main>${flash?`<div class="alert ${flash.k}">${esc(flash.t)}</div>`:""}<div id="v"></div></main>
+  <nav class="tabs">${tabs.map(([k,l])=>`<button class="${S.tab===k?"on":""}" onclick="aba('${k}')">${l}</button>`).join("")}</nav>`;
+  ({pend:vPend,nova:vNova,ret:vRet})[S.tab]();
+}
+window.aba=k=>{stopCam();S.tab=k;N=novo();R=nR();render();if(k==="pend")recarregar()};
+
+// ---------- pendentes ----------
+function vPend(){
+  const q=norm(S.busca);const l=S.pend.filter(p=>!q||norm(`${p.bloco} ${p.apto} ${p.morador}`).includes(q));
+  $("#v").innerHTML=`<input id="bq" placeholder="Buscar por bloco, apto ou morador" value="${esc(S.busca)}" oninput="S.busca=this.value;vPendLista()"><div id="lista"></div>`;vPendLista();
+}
+window.vPendLista=()=>{const q=norm(S.busca);const l=S.pend.filter(p=>!q||norm(`${p.bloco} ${p.apto} ${p.morador}`).includes(q));
+  $("#lista").innerHTML=l.length?l.map(p=>`<div class="card"><div class="row"><div><div class="big">Bl ${esc(p.bloco)} · Apto ${esc(p.apto)}</div><div>${esc(p.morador||"—")}</div></div><div class="fit" style="text-align:right"><span class="tag">📍 ${esc(p.local)}</span><div class="mut">${hora(p.recebida_em)}</div></div></div>
+   ${p.aviso==="falhou"||!p.aviso?`<div class="alert bad" style="margin-top:8px">Aviso por WhatsApp não enviado <button class="hd" style="background:var(--bad);margin-left:8px" onclick="reenviar('${p.id}')">Reenviar</button></div>`:p.aviso==="pendente"?`<span class="tag warn">enviando aviso…</span>`:`<span class="tag ok">aviso enviado</span>`}
+   <div style="margin-top:8px"><button class="sec" onclick="darBaixa('${p.id}')">Entregar</button></div></div>`).join(""):`<div class="card mut">Nenhuma encomenda pendente.</div>`};
+window.reenviar=async id=>{try{await rpc("reenviar_aviso",{p_token:S.tok,p_encomenda:id});const r=await processar();msg(r&&r.falhas?"Ainda não foi possível enviar. A encomenda continua pendente.":"Aviso reenviado com o mesmo código.",r&&r.falhas?"bad":"ok")}catch(e){msg(e.message,"bad")}};
+window.darBaixa=id=>{R=nR();R.modo="manual";R.enc=S.pend.find(p=>p.id===id);S.tab="ret";render()};
+
+// ---------- nova encomenda ----------
+const novo=()=>({foto:null,fotoPath:null,ocr:null,uni:null,mor:null,local:"",busca:"",lendo:false,aprox:false,pront:null});let N=novo();
+const LOCAIS=["Prateleira 1","Prateleira 2","Prateleira 3","Armário","Sala de encomendas"];
+function vNova(){
+  const n=N;const sel=n.uni?S.unis.find(u=>u.unidade_id===n.uni):null;
+  $("#v").innerHTML=n.pront?`<div class="card"><div class="big">✅ Entrada registrada</div><p>Bl ${esc(n.pront.bloco)} · Apto ${esc(n.pront.apto)} — ${esc(n.pront.morador||"")}<br>📍 ${esc(n.pront.local)}</p><div class="alert ${n.pront.aviso==="enviado"?"ok":"bad"}">${n.pront.aviso==="enviado"?"Morador avisado pelo WhatsApp.":"Aviso não enviado. A encomenda ficou em Pendentes e pode ser reenviada."}</div><button onclick="N=novo();render()">Nova encomenda</button></div>`:`
+  <div class="card"><label>1. Foto da etiqueta</label>
+  <input type="file" accept="image/*" capture="environment" id="ft" onchange="foto(this)">
+  ${n.foto?`<img class="foto" src="${n.foto}">`:""}${n.lendo?`<div class="mut">Lendo etiqueta…</div>`:""}
+  ${n.ocr&&n.ocr.erro?`<div class="alert warn">Não consegui ler a etiqueta. Escolha a unidade abaixo.</div>`:""}</div>
+  <div class="card"><label>2. Unidade</label><input placeholder="Digite bloco/apto/nome (ex.: A 101)" value="${esc(n.busca)}" oninput="N.busca=this.value;vSug()"><div id="sug"></div>
+  ${sel?`<div class="alert ok" style="margin-top:8px">Bl ${esc(sel.bloco)} · Apto ${esc(sel.numero)}</div><label>Morador / destinatário</label>
+  <select onchange="N.mor=this.value||null;N.aprox=false">${sel.moradores.map(m=>`<option value="${m.id}" ${m.id===n.mor?"selected":""}>${esc(m.nome)}${m.principal?" (contato principal)":""}</option>`).join("")}</select>
+  ${n.aprox?`<div class="alert warn">Só o apartamento foi identificado. Confira se o contato principal é quem deve ser avisado.</div>`:""}`:""}</div>
+  <div class="card"><label>3. Onde guardou?</label><div class="chips">${LOCAIS.map(l=>`<button class="${n.local===l?"on":""}" onclick="N.local='${l}';render()">${l}</button>`).join("")}</div>
+  <input placeholder="ou digite o local" value="${esc(n.local)}" oninput="N.local=this.value"></div>
+  <button style="width:100%;padding:16px" onclick="confirmar()" ${!n.uni||n.lendo?"disabled":""}>Confirmar entrada e avisar morador</button>`;
+  vSug();
+}
+window.vSug=()=>{const el=$("#sug");if(!el)return;const q=norm(N.busca);if(!q||N.uni&&S.unis.find(u=>u.unidade_id===N.uni)&&false){el.innerHTML="";return}
+  const t=q.split(/\s+/);const l=S.unis.filter(u=>t.every(x=>norm(`${u.bloco} ${u.numero} ${u.moradores.map(m=>m.nome).join(" ")}`).includes(x))).slice(0,6);
+  el.innerHTML=l.map(u=>`<button class="sec" style="width:100%;margin:4px 0;text-align:left" onclick="escolheUni('${u.unidade_id}')">Bl ${esc(u.bloco)} · Apto ${esc(u.numero)} — ${esc(u.moradores.map(m=>m.nome).join(", "))}</button>`).join("")};
+window.escolheUni=(id,mor)=>{N.uni=id;const u=S.unis.find(x=>x.unidade_id===id);N.mor=mor||(u.moradores.find(m=>m.principal)||u.moradores[0]||{}).id||null;N.busca="";render()};
+async function reduz(file){return new Promise(res=>{const img=new Image();img.onload=()=>{const k=Math.min(1,1400/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=img.width*k;c.height=img.height*k;c.getContext("2d").drawImage(img,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.82))};img.src=URL.createObjectURL(file)})}
+window.foto=async inp=>{const f=inp.files[0];if(!f)return;N.lendo=true;N.foto=await reduz(f);render();
+  const r=await fn({acao:"foto",imagem:N.foto.split(",")[1]});N.lendo=false;N.fotoPath=r.foto_path||null;N.ocr=r.ocr||{erro:r.erro||"ocr_falhou"};
+  if(N.ocr&&!N.ocr.erro){const bl=norm(N.ocr.bloco),ap=norm(N.ocr.apartamento),nm=norm(N.ocr.destinatario);
+    const porNome=nm?S.unis.flatMap(u=>u.moradores.map(m=>({u,m}))).filter(x=>norm(x.m.nome)===nm||nm&&norm(x.m.nome).includes(nm)||nm&&nm.includes(norm(x.m.nome))):[];
+    const porApto=ap?S.unis.filter(u=>norm(u.numero)===ap&&(!bl||norm(u.bloco)===bl)):[];
+    const hit=porNome.find(x=>porApto.some(u=>u.unidade_id===x.u.unidade_id))||(porNome.length===1&&porNome[0]);
+    if(hit)escolheUni(hit.u.unidade_id,hit.m.id);
+    else if(porApto.length===1){escolheUni(porApto[0].unidade_id);N.aprox=true}
+    else{N.busca=[N.ocr.bloco,N.ocr.apartamento,N.ocr.destinatario].filter(Boolean).join(" ")}}
+  render()};
+window.confirmar=async()=>{try{const e=await rpc("registrar_entrada",{p_token:S.tok,p_unidade:N.uni,p_morador:N.mor,p_local:N.local,p_foto:N.fotoPath,p_ocr:N.ocr&&!N.ocr.erro?N.ocr:null,p_destinatario_texto:N.ocr&&N.ocr.destinatario||null});
+  const pr={bloco:e.bloco,apto:e.apto,morador:e.morador,local:e.local,aviso:"pendente"};N.pront=pr;render();
+  await processar();const p=S.pend.find(x=>x.id===e.id);pr.aviso=p?p.aviso:"enviado";render()}catch(e){msg(e.message,"bad")}};
+
+// ---------- retirada ----------
+const nR=()=>({modo:"destinatario",enc:null,nome:"",motivo:"",busca:"",cam:false,resultado:null});let R=nR();let stream=null,raf=0;
+function stopCam(){cancelAnimationFrame(raf);if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
+function vRet(){
+  const r=R;
+  if(r.resultado){const x=r.resultado;$("#v").innerHTML=x.ok?`<div class="card"><div class="big">✅ Entrega registrada</div><p>Retirado por <b>${esc(x.encomenda.retirada_por)}</b>${x.encomenda.terceiro?` (destinatário: ${esc(x.encomenda.morador)})`:""}</p><div class="mut">O morador receberá a confirmação pelo WhatsApp.</div><br><button onclick="R=nR();render();recarregar()">Concluir</button></div>`:
+   `<div class="card"><div class="alert bad">Essa encomenda já foi retirada${x.retirada_por?` por ${esc(x.retirada_por)}`:""}${x.retirada_em?` às ${hora(x.retirada_em)}`:""}${x.entregue_por?` (entregue por ${esc(x.entregue_por)})`:""}.</div><button onclick="R=nR();render();recarregar()">Ok</button></div>`;return}
+  $("#v").innerHTML=`<div class="seg"><button class="${r.modo==="destinatario"?"on":""}" onclick="setModo('destinatario')">Pelo morador</button><button class="${r.modo==="terceiro"?"on":""}" onclick="setModo('terceiro')">Retirada por terceiro</button><button class="${r.modo==="manual"?"on":""}" onclick="setModo('manual')">Sem QR Code</button></div>
+  ${r.modo!=="manual"?`<div class="card"><video id="vid" playsinline muted></video><div class="mut" id="camst">${r.modo==="terceiro"?"Escaneie o QR Code encaminhado e informe o nome de quem veio buscar.":"Escaneie o QR Code do morador — a baixa é automática."}</div><button class="sec" style="margin-top:8px" onclick="startCam()">Ligar câmera</button>
+   <div class="mut" style="margin-top:10px">Ou cole/digite o código:</div><input id="cod" placeholder="código do QR" onchange="porCodigo(this.value)"></div>`:""}
+  ${r.enc?`<div class="card"><div class="big">Bl ${esc(r.enc.bloco)} · Apto ${esc(r.enc.apto)}</div><div>${esc(r.enc.morador||"—")} · 📍 ${esc(r.enc.local)} · ${hora(r.enc.recebida_em)}</div>
+   ${r.modo!=="destinatario"?`<label>${r.modo==="terceiro"?"Nome de quem retirou":"Quem retirou"}</label><input value="${esc(r.nome)}" oninput="R.nome=this.value" placeholder="Nome completo">`:""}
+   ${r.modo==="manual"?`<label>Motivo da baixa manual</label><input value="${esc(r.motivo)}" oninput="R.motivo=this.value" placeholder="Ex.: morador sem celular">`:""}
+   <button style="width:100%;margin-top:8px" onclick="baixar()">Confirmar entrega</button></div>`:""}
+  ${r.modo==="manual"&&!r.enc?`<div class="card"><input placeholder="Buscar apto/morador" value="${esc(r.busca)}" oninput="R.busca=this.value;vManual()"><div id="mlist"></div></div>`:""}`;
+  if(r.modo==="manual"&&!r.enc)vManual();if(r.cam&&!stream&&r.modo!=="manual")startCam();
+}
+window.setModo=m=>{stopCam();R.modo=m;R.enc=null;R.nome="";R.motivo="";render()};
+window.vManual=()=>{const q=norm(R.busca);$("#mlist").innerHTML=S.pend.filter(p=>!q||norm(`${p.bloco} ${p.apto} ${p.morador}`).includes(q)).map(p=>`<button class="sec" style="width:100%;margin:4px 0;text-align:left" onclick="R.enc=S.pend.find(x=>x.id==='${p.id}');render()">Bl ${esc(p.bloco)} · Apto ${esc(p.apto)} — ${esc(p.morador||"")} · 📍 ${esc(p.local)}</button>`).join("")||`<div class="mut">Nada pendente.</div>`};
+window.startCam=async()=>{try{R.cam=true;stopCam();stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});const v=$("#vid");v.srcObject=stream;await v.play();const c=document.createElement("canvas"),x=c.getContext("2d",{willReadFrequently:true});
+  const loop=()=>{if(!stream)return;if(v.videoWidth){c.width=v.videoWidth;c.height=v.videoHeight;x.drawImage(v,0,0);const d=x.getImageData(0,0,c.width,c.height);const q=window.jsQR&&jsQR(d.data,c.width,c.height);if(q&&q.data){stopCam();R.cam=false;porCodigo(q.data);return}}raf=requestAnimationFrame(loop)};loop()}catch(e){$("#camst")&&($("#camst").textContent="Não consegui abrir a câmera. Digite o código ou use 'Sem QR Code'.")}};
+async function porCodigo(c){c=String(c).trim();try{const e=await rpc("buscar_por_codigo",{p_token:S.tok,p_codigo:c});R.codigo=c;R.enc=e;
+  if(e.status==="retirada"){R.resultado={ok:false,retirada_por:e.retirada_por,retirada_em:e.retirada_em};return render()}
+  if(R.modo==="destinatario")return baixar();render()}catch(e){msg(e.message,"bad")}}
+window.baixar=async()=>{try{const x=await rpc("baixar",{p_token:S.tok,p_encomenda:R.enc.id,p_modo:R.modo,p_nome_retirante:R.nome||null,p_motivo:R.motivo||null,p_codigo:R.modo==="manual"?null:R.codigo||null});R.resultado=x;render();processar()}catch(e){msg(e.message,"bad")}};
+
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+if(S.tok)recarregar().then(render);else render();
+</script></body></html>
